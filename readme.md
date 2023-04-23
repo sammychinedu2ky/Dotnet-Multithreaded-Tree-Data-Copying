@@ -1,4 +1,4 @@
-This code tries to copy a tree from one tree to another via multithreading without to improve performance. The copying of data is executed from bottom to top.
+This code tries to copy a data from one tree to another via multithreading which aid improve performance. The transfer of data is executed from bottom to top.
 ```
 graph TD
   A --> B
