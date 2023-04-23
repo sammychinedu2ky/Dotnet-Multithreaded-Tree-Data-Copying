@@ -58,7 +58,7 @@ public class Source
         Task.Delay(5000);
         foreach (var task in tasks)
         {
-            Console.WriteLine($"Waiting for {task.Status}");
+            // Console.WriteLine($"Waiting for {task.Status}");
             if (task.IsFaulted)
             {
                 Console.WriteLine(task.Exception);
@@ -67,36 +67,47 @@ public class Source
         Console.WriteLine(JsonSerializer.Serialize(target.Data));
 
     }
-    public void Prehandler(string key, Source source, Target target)
+    public void Prehandler(string node, Source source, Target target)
     {
         // check if it exists in the target
-        if (!target.Data!.ContainsKey(key))
+        if (!target.Data!.ContainsKey(node))
         {
-            // fetch the successors 
-            tasks.Add(Task.Run(() => Posthandler(key, target)));
+            // execute the post handler for this node
+            tasks.Add(Task.Run(() => Posthandler(node, source, target)));
+            // signal all threads to continue
             eventWaitHandle.Set();
-            var successors = source.Data![key];
+            // fetch the successors 
+            var successors = source.Data![node];
             foreach (var successor in successors)
             {
+                // execute the pre handler for each successor
                 Prehandler(successor, source, target);
             }
         }
     }
-    public void Posthandler(string node, Target target)
+    public void Posthandler(string node, Source source, Target target)
     {
+        // wait to be signaled
         while (eventWaitHandle.WaitOne())
         {
-            if (this.Data![node].Count > 0)
+            // check if children of node is above zero(0)
+            if (source.Data![node].Count > 0)
             {
-                if (this.Data![node].All(x => target.Data!.ContainsKey(x)))
+                // check if all children of node are in the target
+                if (source.Data![node].All(x => target.Data!.ContainsKey(x)))
                 {
-                    target.Data!.TryAdd(node, this.Data[node]);
+                    // add node with children to target
+                    target.Data!.TryAdd(node, source.Data[node]);
+                    // reset eventWaitHandle
                     eventWaitHandle.Set();
                     return;
                 }
             }
-            else{
-                target.Data!.TryAdd(node, this.Data[node]);
+            else
+            {
+                // add node with empty children to target
+                target.Data!.TryAdd(node, source.Data[node]);
+                // reset eventWaitHandle
                 eventWaitHandle.Set();
                 return;
             }
