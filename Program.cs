@@ -37,7 +37,7 @@ interface ITree
     public IDictionary<string, bool> Visited { get; set; }
 }
 
-class Source
+public class Source
 {
     public ConcurrentDictionary<string, IList<string>>? Data { get; set; }
     public EventWaitHandle eventWaitHandle { get; set; }
@@ -54,11 +54,11 @@ class Source
     {
         Prehandler(root, this, target);
 
-        Task.WhenAny(tasks).Wait();
+        Task.WhenAll(tasks).Wait();
         Task.Delay(5000);
         foreach (var task in tasks)
         {
-             Console.WriteLine($"Waiting for {task.Status}");
+            Console.WriteLine($"Waiting for {task.Status}");
             if (task.IsFaulted)
             {
                 Console.WriteLine(task.Exception);
@@ -69,77 +69,41 @@ class Source
     }
     public void Prehandler(string key, Source source, Target target)
     {
+        // check if it exists in the target
+        if (!target.Data!.ContainsKey(key))
         {
-            Console.WriteLine($"Key {key} not found in target");
-            Console.WriteLine($"The children of {key} are {string.Join(",", source.Data![key])}");
+            // fetch the successors 
+            tasks.Add(Task.Run(() => Posthandler(key, target)));
+            eventWaitHandle.Set();
+            var successors = source.Data![key];
+            foreach (var successor in successors)
             {
-                 source.Visited.TryAdd(key, false);
-                if (source.Data![key].Count == 0)
-                {
-                    Console.WriteLine($"Copying {key} to target in prehandler");
-                    tasks.Add(Task.Run(() => Posthandler(key, source.Data![key], source, target)));
-                    eventWaitHandle.Set();
-                }
-                else
-                {
-                    foreach (var child in source.Data![key])
-                    {
-
-                        source.Visited.TryAdd(child, false);
-                        tasks.Add(Task.Run(() => Posthandler(key, source.Data![key], source, target)));
-                        eventWaitHandle.Set();
-                        Prehandler(child, source, target);
-
-
-                    }
-                }
-
-
+                Prehandler(successor, source, target);
             }
-
-
         }
     }
-    public void Posthandler(string node, IList<string> children, Source source, Target target)
+    public void Posthandler(string node, Target target)
     {
         while (eventWaitHandle.WaitOne())
         {
-        Console.WriteLine($"post handler for {node} with children {String.Join(",", children)}");
-           // Console.WriteLine($"Waiting for node {node} with children {String.Join(",", children)}");
-            if (!target.Data!.ContainsKey(node) && source.Visited[node] == false)
+            if (this.Data![node].Count > 0)
             {
-                
-                if(children.Count == 0)
+                if (this.Data![node].All(x => target.Data!.ContainsKey(x)))
                 {
-                    target.Data.TryAdd(node, new List<string>(){});
+                    target.Data!.TryAdd(node, this.Data[node]);
+                    eventWaitHandle.Set();
+                    return;
                 }
-                else
-                {
-                    target.Data.TryAdd(node, children);
-                }
-               
-                source.Visited.TryAdd(node,true);
-                //  Task.Delay(50).Wait();
-                //target.Data![node] = children;
-
-
-                
             }
-
-            Console.WriteLine(JsonSerializer.Serialize(target.Data));
-            Console.WriteLine(JsonSerializer.Serialize(source.Visited));
-            if (source.Data!.Keys.All(key => target.Data!.ContainsKey(key)))
-            {
-                Console.WriteLine($"All nodes have been visited from task ${Task.CurrentId}");
-                break;
+            else{
+                target.Data!.TryAdd(node, this.Data[node]);
+                eventWaitHandle.Set();
+                return;
             }
-            eventWaitHandle.Reset();
-           // eventWaitHandle.Set();
         }
     }
 }
-
-class Target
+public class Target
 {
     public ConcurrentDictionary<string, IList<string>>? Data { get; set; }
     public string root { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
