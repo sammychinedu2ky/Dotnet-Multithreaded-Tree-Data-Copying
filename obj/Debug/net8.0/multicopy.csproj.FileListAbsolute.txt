@@ -1,0 +1,15 @@
+C:\Users\Swacblooms\Desktop\multicopy\bin\Debug\net8.0\multicopy.exe
+C:\Users\Swacblooms\Desktop\multicopy\bin\Debug\net8.0\multicopy.deps.json
+C:\Users\Swacblooms\Desktop\multicopy\bin\Debug\net8.0\multicopy.runtimeconfig.json
+C:\Users\Swacblooms\Desktop\multicopy\bin\Debug\net8.0\multicopy.dll
+C:\Users\Swacblooms\Desktop\multicopy\bin\Debug\net8.0\multicopy.pdb
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\multicopy.csproj.AssemblyReference.cache
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\multicopy.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\multicopy.AssemblyInfoInputs.cache
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\multicopy.AssemblyInfo.cs
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\multicopy.csproj.CoreCompileInputs.cache
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\multicopy.dll
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\refint\multicopy.dll
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\multicopy.pdb
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\multicopy.genruntimeconfig.cache
+C:\Users\Swacblooms\Desktop\multicopy\obj\Debug\net8.0\ref\multicopy.dll
