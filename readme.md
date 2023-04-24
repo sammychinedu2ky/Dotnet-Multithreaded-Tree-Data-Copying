@@ -2,6 +2,7 @@ This piece of code attempts to utilize multithreading to enhance performance whe
 ```mermaid
 graph TD
   A --> B
+  B --> E
   A --> C
   C --> D
   C --> E
