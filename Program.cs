@@ -23,7 +23,7 @@ var mySource = new Source("A")
 };
 var myTarget = new Target()
 {
-    Data = new ()
+    Data = new()
 };
 
 mySource.CopyTo(myTarget);
@@ -93,6 +93,9 @@ public class Source
                 // check if all children of node are in the target
                 if (source.Data![node].All(x => target.Data!.ContainsKey(x)))
                 {
+                    Console.WriteLine($"Copying {node} to target with {string.Join(",", source.Data[node])}");
+                    // Simulating copying data
+                    Task.Delay(Random.Shared.Next(1000, 10000)).Wait();
                     // add node with children to target
                     target.Data!.TryAdd(node, source.Data[node]);
                     // reset eventWaitHandle
@@ -102,6 +105,9 @@ public class Source
             }
             else
             {
+                Console.WriteLine($"Copying {node} to target without children");
+                // Simulating copying data
+                Task.Delay(Random.Shared.Next(1000, 10000)).Wait();
                 // add node with empty children to target
                 target.Data!.TryAdd(node, source.Data[node]);
                 // reset eventWaitHandle
