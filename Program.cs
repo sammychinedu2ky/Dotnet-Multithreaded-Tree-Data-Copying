@@ -23,10 +23,7 @@ var mySource = new Source("A")
 };
 var myTarget = new Target()
 {
-    Data = new ConcurrentDictionary<string, IList<string>>()
-    {
-
-    }
+    Data = new ()
 };
 
 mySource.CopyTo(myTarget);
