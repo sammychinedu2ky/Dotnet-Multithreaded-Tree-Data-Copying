@@ -8,7 +8,7 @@ var mySource = new Source("A")
     Data = new ConcurrentDictionary<string, IList<string>>(new List<KeyValuePair<string, IList<string>>>()
 {
     new KeyValuePair<string, IList<string>>("A", new List<string>(){"B", "C"}),
-    new KeyValuePair<string, IList<string>>("B", new List<string>()),
+    new KeyValuePair<string, IList<string>>("B", new List<string>(){"E"}),
     new KeyValuePair<string, IList<string>>("C", new List<string>(){"D", "E"}),
     new KeyValuePair<string, IList<string>>("E", new List<string>(){"F", "G"}),
     new KeyValuePair<string, IList<string>>("F", new List<string>()),
@@ -93,26 +93,34 @@ public class Source
                 // check if all children of node are in the target
                 if (source.Data![node].All(x => target.Data!.ContainsKey(x)))
                 {
-                    Console.WriteLine($"Copying {node} to target with {string.Join(",", source.Data[node])}");
-                    // Simulating copying data
-                    Task.Delay(Random.Shared.Next(1000, 10000)).Wait();
-                    // add node with children to target
-                    target.Data!.TryAdd(node, source.Data[node]);
-                    // reset eventWaitHandle
-                    eventWaitHandle.Set();
+                    if (!target.Data!.ContainsKey(node))
+                    {
+                        Console.WriteLine($"Copying {node} to target with {string.Join(",", source.Data[node])}");
+                        // add node with children to target
+                        target.Data!.TryAdd(node, source.Data[node]);
+                        // Simulating copying data
+                        Task.Delay(Random.Shared.Next(1000, 10000)).Wait();
+                        // reset eventWaitHandle
+                        eventWaitHandle.Reset();
+                    }
+
                     return;
                 }
             }
             else
             {
-                Console.WriteLine($"Copying {node} to target without children");
-                // Simulating copying data
-                Task.Delay(Random.Shared.Next(1000, 10000)).Wait();
-                // add node with empty children to target
-                target.Data!.TryAdd(node, source.Data[node]);
-                // reset eventWaitHandle
-                eventWaitHandle.Set();
+                if (!target.Data!.ContainsKey(node))
+                {
+                    Console.WriteLine($"Copying {node} to target without children");
+                    // add node with empty children to target
+                    target.Data!.TryAdd(node, source.Data[node]);
+                    // Simulating copying data
+                    Task.Delay(Random.Shared.Next(1000, 10000)).Wait();
+                    // reset eventWaitHandle
+                    eventWaitHandle.Reset();
+                }
                 return;
+
             }
         }
     }
