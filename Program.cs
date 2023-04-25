@@ -1,11 +1,7 @@
-﻿
-using System.Collections.Concurrent;
-using System.Text.Json;
-
+﻿using System.Text.Json;
 var mySource = new Source("A")
 {
-
-    Data = new ConcurrentDictionary<string, IList<string>>(new List<KeyValuePair<string, IList<string>>>()
+    Data = new Dictionary<string, IList<string>>(new List<KeyValuePair<string, IList<string>>>()
 {
     new KeyValuePair<string, IList<string>>("A", new List<string>(){"B", "C"}),
     new KeyValuePair<string, IList<string>>("B", new List<string>(){"E"}),
@@ -19,7 +15,6 @@ var mySource = new Source("A")
     new KeyValuePair<string, IList<string>>("Sam", new List<string>()),
     new KeyValuePair<string, IList<string>>("Cat", new List<string>()),
 })
-
 };
 var myTarget = new Target()
 {
@@ -27,108 +22,51 @@ var myTarget = new Target()
 };
 
 mySource.CopyTo(myTarget);
-interface ITree
-{
-    public IDictionary<string, IList<string>>? Data { get; set; }
-    public string root { get; set; }
-    public IDictionary<string, bool> Visited { get; set; }
-}
 
 public class Source
 {
-    public ConcurrentDictionary<string, IList<string>>? Data { get; set; }
-    public EventWaitHandle eventWaitHandle { get; set; }
-    public List<Task> tasks { get; set; } = new List<Task>();
-    public string root { get; set; }
-    public ConcurrentDictionary<string, bool> Visited { get; set; } = new ConcurrentDictionary<string, bool>() { };
+    public Dictionary<string, IList<string>>? Data { get; init; }
+    public List<Task> Tasks { get; set; } = new List<Task>();
+    private string Root { get; set; }
 
     public Source(string root)
     {
-        this.root = root;
-        eventWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+        this.Root = root;
     }
     public void CopyTo(Target target)
     {
-        Prehandler(root, this, target);
-
-        Task.WhenAll(tasks).Wait();
-        Task.Delay(5000);
-        foreach (var task in tasks)
-        {
-            // Console.WriteLine($"Waiting for {task.Status}");
-            if (task.IsFaulted)
-            {
-                Console.WriteLine(task.Exception);
-            }
-        }
+        Prehandler(Root, this, target);
         Console.WriteLine(JsonSerializer.Serialize(target.Data));
 
     }
-    public void Prehandler(string node, Source source, Target target)
+
+    private static void Prehandler(string node, Source source, Target target)
     {
         // check if it exists in the target
         if (!target.Data!.ContainsKey(node))
         {
-            // execute the post handler for this node
-            tasks.Add(Task.Run(() => Posthandler(node, source, target)));
-            // signal all threads to continue
-            eventWaitHandle.Set();
-            // fetch the successors 
-            var successors = source.Data![node];
-            foreach (var successor in successors)
-            {
-                // execute the pre handler for each successor
-                Prehandler(successor, source, target);
-            }
-        }
-    }
-    public void Posthandler(string node, Source source, Target target)
-    {
-        // wait to be signaled
-        while (eventWaitHandle.WaitOne())
-        {
-            // check if children of node is above zero(0)
+            // check if the node has children of its own
             if (source.Data![node].Count > 0)
             {
-                // check if all children of node are in the target
-                if (source.Data![node].All(x => target.Data!.ContainsKey(x)))
+                foreach (var child in source.Data![node])
                 {
-                    if (!target.Data!.ContainsKey(node))
-                    {
-                        Console.WriteLine($"Copying {node} to target with {string.Join(",", source.Data[node])}");
-                        // add node with children to target
-                        target.Data!.TryAdd(node, source.Data[node]);
-                        // Simulating copying data
-                        Task.Delay(Random.Shared.Next(1000, 10000)).Wait();
-                        // reset eventWaitHandle
-                        eventWaitHandle.Reset();
-                    }
-
-                    return;
+                    Prehandler(child, source, target);
                 }
+                Console.WriteLine($"Adding {node} with children {string.Join(" ", source.Data[node])} to target");
+                target.Data.Add(node, source.Data![node]);
             }
             else
             {
-                if (!target.Data!.ContainsKey(node))
-                {
-                    Console.WriteLine($"Copying {node} to target without children");
-                    // add node with empty children to target
-                    target.Data!.TryAdd(node, source.Data[node]);
-                    // Simulating copying data
-                    Task.Delay(Random.Shared.Next(1000, 10000)).Wait();
-                    // reset eventWaitHandle
-                    eventWaitHandle.Reset();
-                }
-                return;
-
+                Console.WriteLine($"Adding {node} with no children to target");
+                target.Data.Add(node, new List<string>());
             }
+
         }
     }
 }
 public class Target
 {
-    public ConcurrentDictionary<string, IList<string>>? Data { get; set; }
-    public string root { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public ConcurrentDictionary<string, bool> Visited { get; set; } = new ConcurrentDictionary<string, bool>();
+    public Dictionary<string, IList<string>>? Data { get; set; }
+    public Dictionary<string, bool> Visited { get; set; } = new Dictionary<string, bool>();
 }
 
